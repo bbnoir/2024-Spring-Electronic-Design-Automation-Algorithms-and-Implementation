@@ -1,0 +1,3 @@
+time ./Lab2 testcase/input2.txt.hgr
+echo ""
+./verifier testcase/input2.txt.hgr output.txt
