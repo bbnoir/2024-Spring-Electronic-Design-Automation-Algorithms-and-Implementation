@@ -30,7 +30,7 @@ Partition::Partition(string input_file) {
 
 void Partition::partitioning() {
     start = chrono::system_clock::now();
-    int numSeed = 15;
+    int numSeed = 10;
     vector<int> seedList;
     srand(42);
     for (int i = 0; i < numSeed; i++)

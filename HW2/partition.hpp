@@ -33,5 +33,5 @@ public:
     vector<bool> bestPartition;
     // timer
     chrono::time_point<chrono::system_clock> start;
-    int timeLimit = 16;
+    int timeLimit = 20;
 };
