@@ -3,14 +3,10 @@
 Partition::Partition(string input_file) {
     ifstream fin(input_file);
     fin >> numNets >> numCells;
-    netArray.resize(numNets);
-    cellArray.resize(numCells+1);
-    for (int i = 0; i < numNets; i++) {
-        netArray[i] = new Net();
-    }
-    for (int i = 1; i <= numCells; i++) {
-        cellArray[i] = new Cell();
-    }
+    for (int i = 0; i < numNets; i++)
+        netArray.emplace_back(new Net());
+    for (int i = 0; i <= numCells; i++)
+        cellArray.emplace_back(new Cell());
     string tmpString;
     getline(fin, tmpString);
     for (int i = 0; i < numNets; i++) {
@@ -39,15 +35,16 @@ void Partition::partitioning() {
     vector<Cell*> moveCellList;
     int maxId = 0, maxCumuGain = 0, cumuGain = 0;
     int iter = 0;
-    const int stopMove = numCells * 0.9;
+    const int stopMove = numCells * 0.95;
     do {
         resetLock();
         initGain();
         moveCellList.clear();
 
-        cumuGain = maxCumuGain = maxId = 0;
-        for (int t = 0; t < stopMove; t++) {
-            // Move nodes and update gain list
+        cumuGain = maxCumuGain = 0;
+        maxId = -1;
+        int t = 0;
+        for (; t < stopMove; t++) {
             Cell* maxGainCell = getMaxGainCell();
             if (maxGainCell == nullptr) break;
             updateGain(maxGainCell);
@@ -59,19 +56,39 @@ void Partition::partitioning() {
             }
             moveCellList.push_back(maxGainCell);
         }
-        if (maxCumuGain <= 0) break;
-        for (int t = stopMove-1; t > maxId; t--) {
-            moveBack(moveCellList[t]);
+        for (int i = t-1; i > maxId; i--) {
+            moveBack(moveCellList[i]);
         }
         iter++;
     } while (maxCumuGain > 0);
 }
 
 void Partition::randomInitPartition() {
-    srand(42);
+    // srand(42);
+    srand(time(NULL));
     for (int i = 1; i <= numCells; i++) {
         cellArray[i]->partition = rand() % 2;
         partitionSize[cellArray[i]->partition]++;
+    }
+    // check if partition size is valid
+    if (partitionSize[0] < minPartitionSize) {
+        for (int i = 1; i <= numCells; i++) {
+            if (partitionSize[0] == minPartitionSize) break;
+            if (cellArray[i]->partition == 1) {
+                cellArray[i]->partition = 0;
+                partitionSize[0]++;
+                partitionSize[1]--;
+            }
+        }
+    } else if (partitionSize[1] < minPartitionSize) {
+        for (int i = 1; i <= numCells; i++) {
+            if (partitionSize[1] == minPartitionSize) break;
+            if (cellArray[i]->partition == 0) {
+                cellArray[i]->partition = 1;
+                partitionSize[0]--;
+                partitionSize[1]++;
+            }
+        }
     }
 }
 
@@ -105,9 +122,9 @@ void Partition::initGain() {
 }
 
 Cell* Partition::getMaxGainCell() {
-    if (partitionSize[0] == minPartitionSize) {
+    if (partitionSize[0] <= minPartitionSize) {
         return bucketList[1]->getMaxGainCell();
-    } else if (partitionSize[1] == minPartitionSize) {
+    } else if (partitionSize[1] <= minPartitionSize) {
         return bucketList[0]->getMaxGainCell();
     } else if (bucketList[0]->maxGain > bucketList[1]->maxGain) {
         return bucketList[0]->getMaxGainCell();

@@ -3,13 +3,7 @@
 
 class Cell {
 public:
-    Cell() {
-        gain = 0;
-        partition = 0;
-        locked = false;
-        prev = nullptr;
-        next = nullptr;
-    }
+    Cell() : gain(0), partition(0), locked(false), prev(nullptr), next(nullptr) {}
     ~Cell() {}
 
     void lock() { locked = true; }
