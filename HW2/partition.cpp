@@ -9,7 +9,7 @@ Partition::Partition(string input_file) {
         netArray[i] = new Net();
     }
     for (int i = 1; i <= numCells; i++) {
-        cellArray[i] = new Cell(i);
+        cellArray[i] = new Cell();
     }
     string tmpString;
     getline(fin, tmpString);
@@ -36,7 +36,7 @@ void Partition::partitioning() {
     randomInitPartition();
     initNetDistribution();
 
-    vector<int> moveCellList;
+    vector<Cell*> moveCellList;
     int maxId = 0, maxCumuGain = 0, cumuGain = 0;
     int iter = 0;
     const int stopMove = numCells * 0.9;
@@ -57,7 +57,7 @@ void Partition::partitioning() {
                 maxCumuGain = cumuGain;
                 maxId = t;
             }
-            moveCellList.push_back(maxGainCell->id);
+            moveCellList.push_back(maxGainCell);
         }
         if (maxCumuGain <= 0) break;
         for (int t = stopMove-1; t > maxId; t--) {
@@ -122,13 +122,13 @@ Cell* Partition::getMaxGainCell() {
     }
 }
 
-void Partition::moveBack(int cell_id) {
-    bool from = cellArray[cell_id]->partition;
+void Partition::moveBack(Cell* cell) {
+    bool from = cell->partition;
     bool to = 1 - from;
-    cellArray[cell_id]->move();
+    cell->move();
     partitionSize[from]--;
     partitionSize[to]++;
-    for (auto net_id : cellArray[cell_id]->netSet) {
+    for (auto net_id : cell->netSet) {
         Net* net = netArray[net_id];
         net->partitionSize[from]--;
         net->partitionSize[to]++;

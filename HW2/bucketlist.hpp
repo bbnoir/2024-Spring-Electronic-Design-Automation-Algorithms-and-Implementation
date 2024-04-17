@@ -6,7 +6,7 @@ class BucketList {
 public:
     BucketList(int maxPin) : maxPin(maxPin), maxGain(-maxPin) {
         for (int i = -maxPin; i <= maxPin; i++)
-            bucketMap[i] = new Cell(-1);
+            bucketMap[i] = new Cell();
     }
 
     void insert(Cell* cell) {

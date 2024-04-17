@@ -16,7 +16,7 @@ public:
     void initGain();
     Cell* getMaxGainCell();
     void updateGain(Cell* cell);
-    void moveBack(int cell_id);
+    void moveBack(Cell* cell);
 
 public:
     int numNets, numCells;

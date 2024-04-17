@@ -3,8 +3,7 @@
 
 class Cell {
 public:
-    Cell(int cell_id) {
-        id = cell_id;
+    Cell() {
         gain = 0;
         partition = 0;
         locked = false;
@@ -18,7 +17,6 @@ public:
     void move() { partition = !partition; }
 
 public:
-    int id;
     int gain;
     bool partition;
     bool locked;
