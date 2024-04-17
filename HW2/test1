@@ -1,0 +1,10 @@
+rm -f result.txt
+rm -f output.txt
+rm -f temp.txt
+TESTCASE="testcase/input2.txt.hgr"
+for i in {1..10}; do
+    ./Lab2 $TESTCASE
+    ./verifier $TESTCASE output.txt >> result.txt
+done
+
+grep "ERROR" result.txt

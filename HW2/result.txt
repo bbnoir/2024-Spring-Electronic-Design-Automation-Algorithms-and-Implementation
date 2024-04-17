@@ -1,0 +1,50 @@
+Minimum Cutting Edge: 223
+# of node in group 0: 2938
+# of node in group 1: 3353
+The balance ratio is: 0.532984
+The solution is legal!
+Minimum Cutting Edge: 223
+# of node in group 0: 2938
+# of node in group 1: 3353
+The balance ratio is: 0.532984
+The solution is legal!
+Minimum Cutting Edge: 223
+# of node in group 0: 2938
+# of node in group 1: 3353
+The balance ratio is: 0.532984
+The solution is legal!
+Minimum Cutting Edge: 223
+# of node in group 0: 2938
+# of node in group 1: 3353
+The balance ratio is: 0.532984
+The solution is legal!
+Minimum Cutting Edge: 213
+# of node in group 0: 3408
+# of node in group 1: 2883
+The balance ratio is: 0.458274
+The solution is legal!
+Minimum Cutting Edge: 213
+# of node in group 0: 3408
+# of node in group 1: 2883
+The balance ratio is: 0.458274
+The solution is legal!
+Minimum Cutting Edge: 213
+# of node in group 0: 3408
+# of node in group 1: 2883
+The balance ratio is: 0.458274
+The solution is legal!
+Minimum Cutting Edge: 213
+# of node in group 0: 3408
+# of node in group 1: 2883
+The balance ratio is: 0.458274
+The solution is legal!
+Minimum Cutting Edge: 213
+# of node in group 0: 3408
+# of node in group 1: 2883
+The balance ratio is: 0.458274
+The solution is legal!
+Minimum Cutting Edge: 213
+# of node in group 0: 3408
+# of node in group 1: 2883
+The balance ratio is: 0.458274
+The solution is legal!

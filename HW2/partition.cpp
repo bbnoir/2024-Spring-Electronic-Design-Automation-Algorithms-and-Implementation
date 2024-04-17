@@ -29,13 +29,38 @@ Partition::Partition(string input_file) {
 }
 
 void Partition::partitioning() {
-    randomInitPartition();
+    start = chrono::system_clock::now();
+    int numSeed = 15;
+    vector<int> seedList;
+    srand(42);
+    for (int i = 0; i < numSeed; i++)
+        seedList.push_back(rand());
+    int bestCutSize = -1;
+    bestPartition.resize(numCells);
+    for (int seed : seedList) {
+        partitioningWithSeed(seed);
+        if (!checkLegal()) continue;
+        int cutSize = getCutSize();
+        // cout << "Seed: " << seed << ", Cut Size: " << cutSize << endl;
+        if (bestCutSize == -1 || cutSize < bestCutSize) {
+            bestCutSize = cutSize;
+            for (int i = 0; i < numCells; i++)
+                bestPartition[i] = cellArray[i+1]->partition;
+        }
+        if (chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - start).count() > timeLimit)
+            break;
+    }
+}
+
+void Partition::partitioningWithSeed(int seed) {
+    randomInitPartition(seed);
     initNetDistribution();
 
     vector<Cell*> moveCellList;
     int maxId = 0, maxCumuGain = 0, cumuGain = 0;
     int iter = 0;
-    const int stopMove = numCells * 0.95;
+    int stopMove = numCells * 0.95;
+    const int maxIter = 30;
     do {
         resetLock();
         initGain();
@@ -60,40 +85,21 @@ void Partition::partitioning() {
             moveBack(moveCellList[i]);
         }
         iter++;
-    } while (maxCumuGain > 0);
+    } while (maxCumuGain > 0 && iter < maxIter);
 }
 
-void Partition::randomInitPartition() {
-    // srand(42);
-    srand(time(NULL));
+void Partition::randomInitPartition(int seed) {
+    srand(seed);
+    partitionSize[0] = partitionSize[1] = 0;
     for (int i = 1; i <= numCells; i++) {
         cellArray[i]->partition = rand() % 2;
         partitionSize[cellArray[i]->partition]++;
-    }
-    // check if partition size is valid
-    if (partitionSize[0] < minPartitionSize) {
-        for (int i = 1; i <= numCells; i++) {
-            if (partitionSize[0] == minPartitionSize) break;
-            if (cellArray[i]->partition == 1) {
-                cellArray[i]->partition = 0;
-                partitionSize[0]++;
-                partitionSize[1]--;
-            }
-        }
-    } else if (partitionSize[1] < minPartitionSize) {
-        for (int i = 1; i <= numCells; i++) {
-            if (partitionSize[1] == minPartitionSize) break;
-            if (cellArray[i]->partition == 0) {
-                cellArray[i]->partition = 1;
-                partitionSize[0]--;
-                partitionSize[1]++;
-            }
-        }
     }
 }
 
 void Partition::initNetDistribution() {
     for (int i = 0; i < numNets; i++) {
+        netArray[i]->partitionSize[0] = netArray[i]->partitionSize[1] = 0;
         for (auto j : netArray[i]->cellSet) {
             netArray[i]->partitionSize[cellArray[j]->partition]++;
         }
@@ -216,8 +222,21 @@ void Partition::updateGain(Cell* cell) {
 
 void Partition::writeResult(string output_file) {
     ofstream fout(output_file);
-    for (int i = 1; i <= numCells; i++) {
-        fout << cellArray[i]->partition << '\n';
+    for (int i = 0; i < numCells; i++) {
+        fout << bestPartition[i] << endl;
     }
     fout.close();
+}
+
+int Partition::getCutSize() {
+    int cutSize = 0;
+    for (int i = 0; i < numNets; i++) {
+        if (netArray[i]->partitionSize[0] > 0 && netArray[i]->partitionSize[1] > 0)
+            cutSize++;
+    }
+    return cutSize;
+}
+
+bool Partition::checkLegal() {
+    return partitionSize[0] >= minPartitionSize && partitionSize[0] <= maxPartitionSize;
 }
