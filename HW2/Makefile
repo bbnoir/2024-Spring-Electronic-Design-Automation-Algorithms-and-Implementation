@@ -11,3 +11,4 @@ partition.o: partition.cpp partition.hpp cell.hpp net.hpp bucketlist.hpp include
 clean:
 	rm -f Lab2
 	rm *.o
+	rm output.txt

@@ -1,6 +1,7 @@
 #include "partition.hpp"
 
-Partition::Partition(ifstream& fin) {
+Partition::Partition(string input_file) {
+    ifstream fin(input_file);
     fin >> numNets >> numCells;
     netArray.resize(numNets);
     cellArray.resize(numCells+1);
@@ -24,14 +25,13 @@ Partition::Partition(ifstream& fin) {
         }
     }
     minPartitionSize = numCells * 0.45, maxPartitionSize = numCells - minPartitionSize;
-    // cout << "minPartitionSize: " << minPartitionSize << endl;
-    // cout << "maxPartitionSize: " << maxPartitionSize << endl;
     maxPin = 0;
     for (int i = 1; i <= numCells; i++) {
         maxPin = max(maxPin, (int)cellArray[i]->netSet.size());
     }
     bucketList[0] = new BucketList(maxPin);
     bucketList[1] = new BucketList(maxPin);
+    fin.close();
 }
 
 void Partition::partitioning() {
@@ -66,15 +66,12 @@ void Partition::partitioning() {
         for (int t = stopMove-1; t > maxId; t--) {
             moveBack(moveCellList[t]);
         }
-        cout << "iter: " << iter << ", maxId: " << maxId << ", maxCumuGain: " << maxCumuGain << endl;
-        cout << "Partition 0: " << partitionSize[0] << ", Partition 1: " << partitionSize[1] << endl;
         iter++;
     } while (maxCumuGain > 0);
 }
 
 void Partition::randomInitPartition() {
-    // srand(42);
-    srand(time(NULL));
+    srand(42);
     for (int i = 1; i <= numCells; i++) {
         cellArray[i]->partition = rand() % 2;
         partitionSize[cellArray[i]->partition]++;
@@ -204,8 +201,10 @@ void Partition::updateGain(Node* node) {
     }
 }
 
-void Partition::writeResult(ofstream& fout) {
+void Partition::writeResult(string output_file) {
+    ofstream fout(output_file);
     for (int i = 1; i <= numCells; i++) {
         fout << cellArray[i]->partition << '\n';
     }
+    fout.close();
 }

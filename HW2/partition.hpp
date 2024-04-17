@@ -6,9 +6,9 @@
 
 class Partition {
 public:
-    Partition(ifstream& fin);
+    Partition(string input_file);
     void partitioning();
-    void writeResult(ofstream& fout);
+    void writeResult(string output_file);
 
     void randomInitPartition();
     void initNetDistribution();
