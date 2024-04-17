@@ -14,8 +14,8 @@ public:
     void initNetDistribution();
     void resetLock();
     void initGain();
-    Node* getMaxGainNode();
-    void updateGain(Node* node);
+    Cell* getMaxGainCell();
+    void updateGain(Cell* cell);
     void moveBack(int cell_id);
 
 public:
@@ -26,7 +26,6 @@ public:
     int maxPin;
     vector<Net*> netArray;
     vector<Cell*> cellArray;
-    vector<Node*> nodeArray;
     BucketList* bucketList[2];
 
 };

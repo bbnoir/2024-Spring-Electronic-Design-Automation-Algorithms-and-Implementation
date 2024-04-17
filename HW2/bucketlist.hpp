@@ -1,44 +1,34 @@
 #pragma once
 #include "include.hpp"
-
-class Node {
-public:
-    Node(int cell_id) : cell_id(cell_id), prev(nullptr), next(nullptr) {}
-    ~Node() {}
-
-public:
-    int cell_id;
-    Node* prev;
-    Node* next;
-};
+#include "cell.hpp"
 
 class BucketList {
 public:
     BucketList(int maxPin) : maxPin(maxPin), maxGain(-maxPin) {
         for (int i = -maxPin; i <= maxPin; i++)
-            bucketMap[i] = new Node(-1);
+            bucketMap[i] = new Cell(-1);
     }
 
-    void insert(int gain, Node* node) {
-        assert(gain <= maxPin && gain >= -maxPin);
+    void insert(Cell* cell) {
+        int gain = cell->gain;
         if (gain > maxGain)
             maxGain = gain;
-        Node* firstNode = bucketMap[gain]->next;
-        node->prev = bucketMap[gain];
-        node->next = firstNode;
-        bucketMap[gain]->next = node;
-        if (firstNode)
-            firstNode->prev = node;
+        Cell* firstCell = bucketMap[gain]->next;
+        cell->prev = bucketMap[gain];
+        cell->next = firstCell;
+        bucketMap[gain]->next = cell;
+        if (firstCell)
+            firstCell->prev = cell;
     }
 
-    void erase(Node* node) {
-        Node* prevNode = node->prev;
-        Node* nextNode = node->next;
-        prevNode->next = nextNode;
-        if (nextNode)
-            nextNode->prev = prevNode;
-        node->prev = nullptr;
-        node->next = nullptr;
+    void erase(Cell* cell) {
+        Cell* prevCell = cell->prev;
+        Cell* nextCell = cell->next;
+        prevCell->next = nextCell;
+        if (nextCell)
+            nextCell->prev = prevCell;
+        cell->prev = nullptr;
+        cell->next = nullptr;
         while (maxGain != -maxPin && bucketMap[maxGain]->next == nullptr) maxGain--;
     }
 
@@ -47,11 +37,11 @@ public:
             bucketMap[i]->next = nullptr;
     }
 
-    Node* getMaxGainNode() {
+    Cell* getMaxGainCell() {
         return bucketMap[maxGain]->next;
     }
 
 public:
     int maxPin, maxGain;
-    unordered_map<int, Node*> bucketMap;
+    unordered_map<int, Cell*> bucketMap;
 };

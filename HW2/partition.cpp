@@ -5,13 +5,11 @@ Partition::Partition(string input_file) {
     fin >> numNets >> numCells;
     netArray.resize(numNets);
     cellArray.resize(numCells+1);
-    nodeArray.resize(numCells+1);
     for (int i = 0; i < numNets; i++) {
         netArray[i] = new Net();
     }
     for (int i = 1; i <= numCells; i++) {
         cellArray[i] = new Cell(i);
-        nodeArray[i] = new Node(i);
     }
     string tmpString;
     getline(fin, tmpString);
@@ -50,11 +48,10 @@ void Partition::partitioning() {
         cumuGain = maxCumuGain = maxId = 0;
         for (int t = 0; t < stopMove; t++) {
             // Move nodes and update gain list
-            Node* maxGainNode = getMaxGainNode();
-            if (maxGainNode == nullptr) break;
-            updateGain(maxGainNode);
+            Cell* maxGainCell = getMaxGainCell();
+            if (maxGainCell == nullptr) break;
+            updateGain(maxGainCell);
 
-            Cell* maxGainCell = cellArray[maxGainNode->cell_id];
             cumuGain += maxGainCell->gain;
             if (cumuGain > maxCumuGain) {
                 maxCumuGain = cumuGain;
@@ -103,25 +100,25 @@ void Partition::initGain() {
             if (netArray[j]->partitionSize[to] == 0)
                 cellArray[i]->gain--;
         }
-        bucketList[from]->insert(cellArray[i]->gain, nodeArray[i]);
+        bucketList[from]->insert(cellArray[i]);
     }
 }
 
-Node* Partition::getMaxGainNode() {
+Cell* Partition::getMaxGainCell() {
     if (partitionSize[0] == minPartitionSize) {
-        return bucketList[1]->getMaxGainNode();
+        return bucketList[1]->getMaxGainCell();
     } else if (partitionSize[1] == minPartitionSize) {
-        return bucketList[0]->getMaxGainNode();
+        return bucketList[0]->getMaxGainCell();
     } else if (bucketList[0]->maxGain > bucketList[1]->maxGain) {
-        return bucketList[0]->getMaxGainNode();
+        return bucketList[0]->getMaxGainCell();
     } else if (bucketList[0]->maxGain < bucketList[1]->maxGain) {
-        return bucketList[1]->getMaxGainNode();
+        return bucketList[1]->getMaxGainCell();
     } else if (partitionSize[0] < partitionSize[1]) {
-        return bucketList[0]->getMaxGainNode();
+        return bucketList[0]->getMaxGainCell();
     } else if (partitionSize[0] > partitionSize[1]) {
-        return bucketList[1]->getMaxGainNode();
+        return bucketList[1]->getMaxGainCell();
     } else {
-        return bucketList[0]->getMaxGainNode(); // default
+        return bucketList[0]->getMaxGainCell(); // default
     }
 }
 
@@ -138,35 +135,34 @@ void Partition::moveBack(int cell_id) {
     }
 }
 
-void Partition::updateGain(Node* node) {
-    bool from = cellArray[node->cell_id]->partition;
+void Partition::updateGain(Cell* cell) {
+    bool from = cell->partition;
     bool to = 1 - from;
-    bucketList[from]->erase(node);
+    bucketList[from]->erase(cell);
     partitionSize[from]--;
     partitionSize[to]++;
-    Cell* updateCell = cellArray[node->cell_id];
-    updateCell->lock();
-    updateCell->move();
-    for (auto net_id : updateCell->netSet) {
+    cell->lock();
+    cell->move();
+    for (auto net_id : cell->netSet) {
         // check critical nets before moving
         Net* net = netArray[net_id];
         if (net->partitionSize[to] == 0) {
             for (int j : net->cellSet) {
-                Cell* cell = cellArray[j];
-                if (!cell->locked) {
-                    bucketList[cell->partition]->erase(nodeArray[j]);
-                    cell->gain++;
-                    bucketList[cell->partition]->insert(cell->gain, nodeArray[j]);
+                Cell* cur_cell = cellArray[j];
+                if (!cur_cell->locked) {
+                    bucketList[cur_cell->partition]->erase(cur_cell);
+                    cur_cell->gain++;
+                    bucketList[cur_cell->partition]->insert(cur_cell);
                 }
             }
         } else if (net->partitionSize[to] == 1) {
             for (int j : net->cellSet) {
-                Cell* cell = cellArray[j];
-                if (cell->partition == to) {
-                    if (!cell->locked) {
-                        bucketList[to]->erase(nodeArray[j]);
-                        cell->gain--;
-                        bucketList[to]->insert(cell->gain, nodeArray[j]);
+                Cell* cur_cell = cellArray[j];
+                if (cur_cell->partition == to) {
+                    if (!cur_cell->locked) {
+                        bucketList[to]->erase(cur_cell);
+                        cur_cell->gain--;
+                        bucketList[to]->insert(cur_cell);
                     }
                     break;
                 }
@@ -178,21 +174,21 @@ void Partition::updateGain(Node* node) {
         // check critical nets after moving
         if (net->partitionSize[from] == 0) {
             for (int j : net->cellSet) {
-                Cell* cell = cellArray[j];
-                if (!cell->locked) {
-                    bucketList[cell->partition]->erase(nodeArray[j]);
-                    cell->gain--;
-                    bucketList[cell->partition]->insert(cell->gain, nodeArray[j]);
+                Cell* cur_cell = cellArray[j];
+                if (!cur_cell->locked) {
+                    bucketList[cur_cell->partition]->erase(cur_cell);
+                    cur_cell->gain--;
+                    bucketList[cur_cell->partition]->insert(cur_cell);
                 }
             }
         } else if (net->partitionSize[from] == 1) {
             for (int j : net->cellSet) {
-                Cell* cell = cellArray[j];
-                if (cell->partition == from) {
-                    if (!cell->locked) {
-                        bucketList[from]->erase(nodeArray[j]);
-                        cell->gain++;
-                        bucketList[from]->insert(cell->gain, nodeArray[j]);
+                Cell* cur_cell = cellArray[j];
+                if (cur_cell->partition == from) {
+                    if (!cur_cell->locked) {
+                        bucketList[from]->erase(cur_cell);
+                        cur_cell->gain++;
+                        bucketList[from]->insert(cur_cell);
                     }
                     break;
                 }

@@ -8,6 +8,8 @@ public:
         gain = 0;
         partition = 0;
         locked = false;
+        prev = nullptr;
+        next = nullptr;
     }
     ~Cell() {}
 
@@ -21,4 +23,6 @@ public:
     bool partition;
     bool locked;
     unordered_set<int> netSet;
+    Cell* prev;
+    Cell* next;
 };
