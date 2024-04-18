@@ -30,7 +30,7 @@ Partition::Partition(string input_file) {
 
 void Partition::partitioning() {
     start = chrono::system_clock::now();
-    int numSeed = 10;
+    int numSeed = 5;
     vector<int> seedList;
     srand(42);
     for (int i = 0; i < numSeed; i++)
@@ -85,6 +85,8 @@ void Partition::partitioningWithSeed(int seed) {
             moveBack(moveCellList[i]);
         }
         iter++;
+        if (chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - start).count() > timeLimit)
+            break;
     } while (maxCumuGain > 0 && iter < maxIter);
 }
 
