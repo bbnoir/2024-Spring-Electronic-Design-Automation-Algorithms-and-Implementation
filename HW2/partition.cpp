@@ -134,16 +134,10 @@ Cell* Partition::getMaxGainCell() {
         return bucketList[1]->getMaxGainCell();
     } else if (partitionSize[1] <= minPartitionSize) {
         return bucketList[0]->getMaxGainCell();
-    } else if (bucketList[0]->maxGain > bucketList[1]->maxGain) {
+    } else if (bucketList[0]->maxGain >= bucketList[1]->maxGain) {
         return bucketList[0]->getMaxGainCell();
-    } else if (bucketList[0]->maxGain < bucketList[1]->maxGain) {
-        return bucketList[1]->getMaxGainCell();
-    // } else if (partitionSize[0] < partitionSize[1]) {
-    //     return bucketList[0]->getMaxGainCell();
-    // } else if (partitionSize[0] > partitionSize[1]) {
-    //     return bucketList[1]->getMaxGainCell();
     } else {
-        return bucketList[0]->getMaxGainCell(); // default
+        return bucketList[1]->getMaxGainCell();
     }
 }
 
