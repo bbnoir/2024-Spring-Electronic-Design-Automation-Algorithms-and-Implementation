@@ -30,7 +30,7 @@ Partition::Partition(string input_file) {
 
 void Partition::partitioning() {
     start = chrono::system_clock::now();
-    int numSeed = 5;
+    int numSeed = 6;
     vector<int> seedList;
     srand(42);
     for (int i = 0; i < numSeed; i++)
@@ -41,7 +41,7 @@ void Partition::partitioning() {
         partitioningWithSeed(seed);
         if (!checkLegal()) continue;
         int cutSize = getCutSize();
-        // cout << "Seed: " << seed << ", Cut Size: " << cutSize << endl;
+        cout << "Seed: " << seed << ", Cut Size: " << cutSize << endl;
         if (bestCutSize == -1 || cutSize < bestCutSize) {
             bestCutSize = cutSize;
             for (int i = 0; i < numCells; i++)
@@ -138,10 +138,10 @@ Cell* Partition::getMaxGainCell() {
         return bucketList[0]->getMaxGainCell();
     } else if (bucketList[0]->maxGain < bucketList[1]->maxGain) {
         return bucketList[1]->getMaxGainCell();
-    } else if (partitionSize[0] < partitionSize[1]) {
-        return bucketList[0]->getMaxGainCell();
-    } else if (partitionSize[0] > partitionSize[1]) {
-        return bucketList[1]->getMaxGainCell();
+    // } else if (partitionSize[0] < partitionSize[1]) {
+    //     return bucketList[0]->getMaxGainCell();
+    // } else if (partitionSize[0] > partitionSize[1]) {
+    //     return bucketList[1]->getMaxGainCell();
     } else {
         return bucketList[0]->getMaxGainCell(); // default
     }
@@ -183,12 +183,10 @@ void Partition::updateGain(Cell* cell) {
         } else if (net->partitionSize[to] == 1) {
             for (int j : net->cellSet) {
                 Cell* cur_cell = cellArray[j];
-                if (cur_cell->partition == to) {
-                    if (!cur_cell->locked) {
-                        bucketList[to]->erase(cur_cell);
-                        cur_cell->gain--;
-                        bucketList[to]->insert(cur_cell);
-                    }
+                if (cur_cell->partition == to && !cur_cell->locked) {
+                    bucketList[to]->erase(cur_cell);
+                    cur_cell->gain--;
+                    bucketList[to]->insert(cur_cell);
                     break;
                 }
             }
@@ -209,12 +207,10 @@ void Partition::updateGain(Cell* cell) {
         } else if (net->partitionSize[from] == 1) {
             for (int j : net->cellSet) {
                 Cell* cur_cell = cellArray[j];
-                if (cur_cell->partition == from) {
-                    if (!cur_cell->locked) {
-                        bucketList[from]->erase(cur_cell);
-                        cur_cell->gain++;
-                        bucketList[from]->insert(cur_cell);
-                    }
+                if (cur_cell->partition == from && !cur_cell->locked) {
+                    bucketList[from]->erase(cur_cell);
+                    cur_cell->gain++;
+                    bucketList[from]->insert(cur_cell);
                     break;
                 }
             }
