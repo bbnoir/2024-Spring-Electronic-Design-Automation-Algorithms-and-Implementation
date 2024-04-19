@@ -12,5 +12,5 @@ public:
 
 public:
     int partitionSize[2];
-    unordered_set<int> cellSet;
+    vector<int> cellSet;
 };

@@ -14,7 +14,7 @@ public:
     int gain;
     bool partition;
     bool locked;
-    unordered_set<int> netSet;
+    vector<int> netSet;
     Cell* prev;
     Cell* next;
 };

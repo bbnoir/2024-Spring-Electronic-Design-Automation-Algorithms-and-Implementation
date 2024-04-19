@@ -14,8 +14,8 @@ Partition::Partition(string input_file) {
         stringstream ss(tmpString);
         int tmp;
         while (ss >> tmp) {
-            netArray[i]->cellSet.insert(tmp);
-            cellArray[tmp]->netSet.insert(i);
+            netArray[i]->cellSet.push_back(tmp);
+            cellArray[tmp]->netSet.push_back(i);
         }
     }
     minPartitionSize = numCells * 0.45, maxPartitionSize = numCells - minPartitionSize;
@@ -30,9 +30,9 @@ Partition::Partition(string input_file) {
 
 void Partition::partitioning() {
     start = chrono::system_clock::now();
-    int numSeed = 6;
+    int numSeed = 5;
     vector<int> seedList;
-    srand(42);
+    srand(19); // 50 18
     for (int i = 0; i < numSeed; i++)
         seedList.push_back(rand());
     int bestCutSize = -1;
@@ -41,7 +41,7 @@ void Partition::partitioning() {
         partitioningWithSeed(seed);
         if (!checkLegal()) continue;
         int cutSize = getCutSize();
-        cout << "Seed: " << seed << ", Cut Size: " << cutSize << endl;
+        // cout << "Seed: " << seed << ", Cut Size: " << cutSize << ", Best: " << bestCutSize << endl;
         if (bestCutSize == -1 || cutSize < bestCutSize) {
             bestCutSize = cutSize;
             for (int i = 0; i < numCells; i++)
@@ -59,8 +59,7 @@ void Partition::partitioningWithSeed(int seed) {
     vector<Cell*> moveCellList;
     int maxId = 0, maxCumuGain = 0, cumuGain = 0;
     int iter = 0;
-    int stopMove = numCells * 0.95;
-    const int maxIter = 30;
+    const int stopMove = numCells;
     do {
         resetLock();
         initGain();
@@ -87,7 +86,7 @@ void Partition::partitioningWithSeed(int seed) {
         iter++;
         if (chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - start).count() > timeLimit)
             break;
-    } while (maxCumuGain > 0 && iter < maxIter);
+    } while (maxCumuGain > 0);
 }
 
 void Partition::randomInitPartition(int seed) {
@@ -102,7 +101,7 @@ void Partition::randomInitPartition(int seed) {
 void Partition::initNetDistribution() {
     for (int i = 0; i < numNets; i++) {
         netArray[i]->partitionSize[0] = netArray[i]->partitionSize[1] = 0;
-        for (auto j : netArray[i]->cellSet) {
+        for (int j : netArray[i]->cellSet) {
             netArray[i]->partitionSize[cellArray[j]->partition]++;
         }
     }
