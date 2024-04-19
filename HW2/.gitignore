@@ -1,3 +1,7 @@
 output.txt
-partition.o
+*.o
 Lab2
+*.zip
+testcase
+110511010
+shmetis
