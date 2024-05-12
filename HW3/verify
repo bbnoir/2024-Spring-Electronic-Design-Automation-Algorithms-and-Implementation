@@ -1,0 +1,19 @@
+set -x
+
+./lab3 case1/test.in case1/my.out
+./draw case1/test.in case1/my.out
+
+./lab3 case2/case2.in case2/my.out
+./draw case2/case2.in case2/my.out
+
+./lab3 case3/case3.in case3/my.out
+./draw case3/case3.in case3/my.out
+
+./lab3 case4/case4.in case4/my.out
+./draw case4/case4.in case4/my.out
+
+./lab3 case5/case5.in case5/my.out
+./draw case5/case5.in case5/my.out
+
+./lab3 case6/case6.in case6/my.out
+./draw case6/case6.in case6/my.out

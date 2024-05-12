@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+xmlns:xlink="http://www.w3.org/2020/xlink" version="1.1"
+viewBox=" -15 -30 105 105" preserveAspectRatio="xMinYMin meet">
+<g transform=" scale(1,-1)">
+<rect x="0" y="0" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="0" y="-15" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="0" y="-30" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="0" y="-45" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="0" y="-60" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="15" y="0" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="15" y="-15" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="15" y="-30" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="15" y="-45" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="15" y="-60" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="30" y="0" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="30" y="-15" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="30" y="-30" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="30" y="-45" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="30" y="-60" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="45" y="0" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="45" y="-15" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="45" y="-30" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="45" y="-45" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="45" y="-60" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="60" y="0" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="60" y="-15" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="60" y="-30" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="60" y="-45" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+<rect x="60" y="-60" width="15" height="15" fill="white" stroke="black" stroke-width="0.5"/>
+</g>
+</svg>

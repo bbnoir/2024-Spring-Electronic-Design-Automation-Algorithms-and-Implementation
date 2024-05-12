@@ -6,7 +6,10 @@ class Router {
     public:
         Router(std::string filename);
         void route();
+        bool routeOneNet(Net* net);
         void writeResults(std::string filename);
+
+        void showGrid();
 
         const t_grid EMPTY = 0;
         const t_grid BLOCK = -1;

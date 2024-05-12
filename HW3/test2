@@ -1,0 +1,8 @@
+./lab3 case2/case2.in case2/my.out
+echo "DRAW"
+./draw case2/case2.in case2/my.out
+echo ""
+
+echo "OUT"
+cat case2/my.out
+echo ""

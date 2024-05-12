@@ -1,0 +1,4 @@
+set -x
+
+./lab3 case3/case3.in case3/my.out
+./draw case3/case3.in case3/my.out
