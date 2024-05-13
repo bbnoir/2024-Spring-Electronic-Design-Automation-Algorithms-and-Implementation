@@ -221,7 +221,7 @@ void Router::writeResults(std::string filename) {
         fout << net->net_name << " " << net->length << std::endl;
         fout << "begin" << std::endl;
         for (int j = net->path.size() - 1; j > 0; j--) {
-            fout << net->path[j].first << " " << net->path[j].second << " " << net->path[j-1].first << " " << net->path[j-1].second << std::endl;
+            fout << net->path[j].second << " " << net->path[j].first << " " << net->path[j-1].second << " " << net->path[j-1].first << std::endl;
         }
         fout << "end" << std::endl;
     }
