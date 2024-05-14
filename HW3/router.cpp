@@ -210,7 +210,7 @@ bool Router::routeOneNet(Net* net) {
             net->length += std::abs(sx - tx);
         }
     }
-    // showGrid();
+    showGrid();
     return true;
 }
 
@@ -228,17 +228,17 @@ void Router::writeResults(std::string filename) {
 }
 
 void Router::showGrid() {
-    for (int j = 0; j < grid_size_row; j++) {
+    for (int j = 0; j < grid_size_col; j++) {
         std::cout << "===";
     }
     std::cout << std::endl;
-    for (int i = grid_size_col - 1; i >= 0; i--) {
-        for (int j = 0; j < grid_size_row; j++) {
-            if (grid[j][i] == EMPTY) {
+    for (int i = grid_size_row - 1; i >= 0; i--) {
+        for (int j = 0; j < grid_size_col; j++) {
+            if (grid[i][j] == EMPTY) {
                 std::cout << "   ";
-            } else if (grid[j][i] == BLOCK) {
+            } else if (grid[i][j] == BLOCK) {
                 std::cout << "  #";
-            } else if (grid[j][i] == WIRE) {
+            } else if (grid[i][j] == WIRE) {
                 std::cout << "  *";
             } else {
                 std::cout << std::setw(3) << grid[j][i];
@@ -246,7 +246,7 @@ void Router::showGrid() {
         }
         std::cout << std::endl;
     }
-    for (int j = 0; j < grid_size_row; j++) {
+    for (int j = 0; j < grid_size_col; j++) {
         std::cout << "===";
     }
     std::cout << std::endl;
