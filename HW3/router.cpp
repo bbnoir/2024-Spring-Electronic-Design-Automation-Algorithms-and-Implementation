@@ -77,6 +77,9 @@ Router::Router(std::string filename) {
 void Router::route() {
     routeMinBend();
     routeBruteForce();
+    if (best_total_length == -1) {
+        routeCostBased();
+    }
 }
 
 bool Router::routeBruteForce() {
@@ -253,7 +256,162 @@ bool Router::routeOneNet(Net* net) {
 }
 
 bool Router::routeCostBased() {
-    return false;
+    // sort net based on distance
+    std::vector<int> net_order;
+    for (int i = 0; i < num_nets; i++) {
+        net_order.push_back(i);
+    }
+    std::vector<int> distance(num_nets);
+    for (int i = 0; i < num_nets; i++) {
+        distance[i] = std::abs(nets[i]->source_x - nets[i]->target_x) + std::abs(nets[i]->source_y - nets[i]->target_y);
+    }
+    std::sort(net_order.begin(), net_order.end(), [&distance](int a, int b) {
+        return distance[a] < distance[b];
+    });
+
+    grid = clean_grid;
+    for (Net* net : nets) {
+        net->cost_map.resize(grid_size_row, std::vector<int>(grid_size_col, 1));
+    }
+    bool success = false;
+    int route_net_idx = 0;
+    while(!checkTimeOut() && !success) {
+        Net* net = nets[net_order[route_net_idx]];
+        if (routeOneNetCostBased(net)) {
+            route_net_idx++;
+            if (route_net_idx == num_nets) {
+                success = true;
+                // std::cout << "Success" << std::endl;
+            }
+        } else {
+            // update cost map on path
+            for (int n = 0; n < route_net_idx; n++) {
+                Net* update_net = nets[net_order[n]];
+                for (int i = 0; i < update_net->path_size-1; i++) {
+                    int sx = update_net->path[i].first;
+                    int sy = update_net->path[i].second;
+                    int tx = update_net->path[i + 1].first;
+                    int ty = update_net->path[i + 1].second;
+                    if (sx == tx) {
+                        for (int y = std::min(sy, ty); y <= std::max(sy, ty); y++) {
+                            update_net->cost_map[sx][y]++;
+                        }
+                    } else {
+                        for (int x = std::min(sx, tx); x <= std::max(sx, tx); x++) {
+                            update_net->cost_map[x][sy]++;
+                        }
+                    }
+                }
+            }
+            // ramdomly shuffle net order till route_net_idx
+            std::random_shuffle(net_order.begin(), net_order.begin() + route_net_idx);
+            route_net_idx = 0;
+            grid = clean_grid;
+        }
+    }
+    if (success) {
+        for (int i = 0; i < num_nets; i++) {
+            best_nets[i]->copy(nets[i]);
+        }
+    }
+}
+
+bool Router::routeOneNetCostBased(Net* net) {
+    // std::cout << "Route net " << net->net_id << std::endl;
+     // Lee's algorithm
+    std::vector<std::pair<int, int>> queue;
+    queue.push_back(std::make_pair(net->source_x, net->source_y));
+    std::vector<std::vector<t_grid>> grid_init = grid;
+    grid[net->source_x][net->source_y] = 1;
+    grid[net->target_x][net->target_y] = EMPTY;
+    std::vector<std::vector<t_grid>> grid_note = grid;
+    int head = 0;
+    int tail = 1;
+    bool found = false;
+    while (head < tail) {
+        // showGrid();
+        int x = queue[head].first;
+        int y = queue[head].second;
+        if (x == net->target_x && y == net->target_y) {
+            found = true;
+            head++;
+            continue;
+            // break;
+        }
+        grid_note[x][y] = WIRE;
+        for (int i = 0; i < 4; i++) {
+            int new_x = x + dx[i];
+            int new_y = y + dy[i];
+            if (isOnGrid(new_x, new_y) && grid_note[new_x][new_y] == EMPTY) {
+                queue.push_back(std::make_pair(new_x, new_y));
+                if (grid[new_x][new_y] == EMPTY) {
+                    grid[new_x][new_y] = grid[x][y] + net->cost_map[new_x][new_y];
+                } else {
+                    grid[new_x][new_y] = std::min(grid[new_x][new_y], grid[x][y] + net->cost_map[new_x][new_y]);
+                }
+                tail++;
+            }
+        }
+        head++;
+    }
+    // showGrid();
+    if (!found) {
+        for (Net* net : nets) {
+            net->length = -1;
+            net->path.clear();
+        }
+        return false;
+    }
+    int x = net->target_x;
+    int y = net->target_y;
+    net->path.push_back(std::make_pair(x, y));
+    int prev_dir = -1, cur_dir = -1;
+    // save path if previous direction is not the same as current direction
+    for (int i = grid[x][y] - net->cost_map[x][y]; i > 0; i -= net->cost_map[x][y]) {
+        for (int j = 0; j < 4; j++) {
+            int new_x = x + dx[dir_order[j]];
+            int new_y = y + dy[dir_order[j]];
+            if (isOnGrid(new_x, new_y) && grid[new_x][new_y] == i) {
+                cur_dir = dir_order[j];
+                if (min_bend && j != 0) {
+                    std::swap(dir_order[0], dir_order[j]);
+                }
+                break;
+            }
+        }
+        if (prev_dir != -1 && prev_dir != cur_dir) {
+            net->path.push_back(std::make_pair(x, y));
+        }
+        prev_dir = cur_dir;
+        x += dx[cur_dir];
+        y += dy[cur_dir];
+    }
+    if (net->path.back() != std::make_pair(net->source_x, net->source_y)) {
+        net->path.push_back(std::make_pair(net->source_x, net->source_y));
+    }
+    net->path_size = net->path.size();
+    grid = grid_init;
+    net->length = -1;
+    // std::cout << "Path size: " << int(net->path.size()) << std::endl;
+    for (int i = 0; i < net->path.size()-1; i++) {
+        int sx = net->path[i].first;
+        int sy = net->path[i].second;
+        int tx = net->path[i + 1].first;
+        int ty = net->path[i + 1].second;
+        if (sx == tx) {
+            for (int y = std::min(sy, ty); y <= std::max(sy, ty); y++) {
+                grid[sx][y] = WIRE;
+            }
+            net->length += std::abs(sy - ty);
+        } else {
+            for (int x = std::min(sx, tx); x <= std::max(sx, tx); x++) {
+                grid[x][sy] = WIRE;
+            }
+            net->length += std::abs(sx - tx);
+        }
+    }
+    // showGrid();
+    return true;
 }
 
 void Router::writeResults(std::string filename) {
@@ -283,7 +441,7 @@ void Router::showGrid() {
             } else if (grid[i][j] == WIRE) {
                 std::cout << "  *";
             } else {
-                std::cout << std::setw(3) << grid[j][i];
+                std::cout << std::setw(3) << grid[i][j];
             }
         }
         std::cout << std::endl;

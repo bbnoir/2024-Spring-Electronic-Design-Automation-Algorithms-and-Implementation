@@ -17,3 +17,6 @@ set -x
 
 ./lab3 case6/sample.in draws/case6.out
 ./draw case6/sample.in draws/case6.out
+
+./lab3 case7/case7.in draws/case7.out
+./draw case7/case7.in draws/case7.out

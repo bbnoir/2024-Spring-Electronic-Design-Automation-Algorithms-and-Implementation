@@ -25,4 +25,6 @@ class Net {
 
         int length;
         std::vector<std::pair<int, int>> path;
+        int path_size;
+        std::vector<std::vector<int>> cost_map;
 };

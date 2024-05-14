@@ -8,8 +8,9 @@ class Router {
         void route();
         bool routeBruteForce();
         bool routeMinBend();
-        bool routeCostBased();
         bool routeOneNet(Net* net);
+        bool routeCostBased();
+        bool routeOneNetCostBased(Net* net);
         void writeResults(std::string filename);
         bool isOnGrid(int x, int y);
 
@@ -39,7 +40,7 @@ class Router {
         int num_shuffled_net_order;
 
         // timer
-        const int time_limit = 90; // seconds
+        const int time_limit = 3; // seconds
         std::chrono::time_point<std::chrono::system_clock> start_time;
         bool checkTimeOut();
         bool checkTimeOut(int local_time_limit);
