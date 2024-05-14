@@ -75,12 +75,11 @@ Router::Router(std::string filename) {
 }
 
 void Router::route() {
-    // routeMinBend();
-    // routeBruteForce();
-    // if (best_total_length == -1) {
-    //     routeCostBased();
-    // }
-    routeCostBased();
+    routeMinBend();
+    routeBruteForce();
+    if (best_total_length == -1) {
+        routeCostBased();
+    }
 }
 
 bool Router::routeBruteForce() {
