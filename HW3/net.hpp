@@ -3,8 +3,10 @@
 
 class Net {
     public:
-        Net(std::string name, int sx, int sy, int tx, int ty) : net_name(name), source_x(sx), source_y(sy), target_x(tx), target_y(ty) {}
+        Net() {}
+        Net(int id, std::string name, int sx, int sy, int tx, int ty) : net_id(id), net_name(name), source_x(sx), source_y(sy), target_x(tx), target_y(ty) {}
         void copy(Net* net) {
+            net_id = net->net_id;
             net_name = net->net_name;
             source_x = net->source_x;
             source_y = net->source_y;
@@ -14,6 +16,7 @@ class Net {
             path = net->path;
         }
 
+        int net_id;
         std::string net_name;
         int source_x;
         int source_y;

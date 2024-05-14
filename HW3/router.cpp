@@ -1,6 +1,7 @@
 #include "router.hpp"
 
 Router::Router(std::string filename) {
+    start_time = std::chrono::system_clock::now();
     std::ifstream fin(filename);
     if (!fin) {
         std::cerr << "Error opening file: " << filename << std::endl;
@@ -48,40 +49,53 @@ Router::Router(std::string filename) {
                 std::getline(fin, line);
                 ss.str(line);
                 ss >> net_name >> source_y >> source_x >> target_y >> target_x;
-                Net* net = new Net(net_name, source_x, source_y, target_x, target_y);
+                Net* net = new Net(i, net_name, source_x, source_y, target_x, target_y);
                 nets.push_back(net);
                 grid[source_x][source_y] = WIRE;
                 grid[target_x][target_y] = WIRE;
             }
         }
     }
-}
-
-void Router::route() {
+    for (int i = 0; i < num_nets; i++) {
+        best_nets.push_back(new Net());
+        init_nets.push_back(new Net());
+        init_nets[i]->copy(nets[i]);
+    }
+    best_total_length = -1;
+    clean_grid = grid;
     int net_order[num_nets];
     for (int i = 0; i < num_nets; i++) {
         net_order[i] = i;
     }
-
-    std::vector<Net*> best_nets;
-    for (int i = 0; i < num_nets; i++) {
-        best_nets.push_back(new Net("", 0, 0, 0, 0));
-    }
-    int best_total_length = -1;
-
-    std::vector<std::vector<t_grid>> clean_grid = grid;
-
-    std::srand(42);
     do {
-        do {
+        shuffled_net_order.push_back(std::vector<int>(net_order, net_order + num_nets));
+    } while (std::next_permutation(net_order, net_order + num_nets));
+    std::random_shuffle(shuffled_net_order.begin(), shuffled_net_order.end());
+    num_shuffled_net_order = shuffled_net_order.size();
+}
+
+void Router::route() {
+    routeMinBend();
+    routeBruteForce();
+}
+
+bool Router::routeBruteForce() {
+    min_bend = false;
+    const int local_time_limit = 60;
+    for (int i = 0; i < num_nets; i++) {
+        nets[i]->copy(init_nets[i]);
+    }
+
+    int found_count = 0;
+    std::sort(dir_order, dir_order + 4);
+    do {
+        for (int v = 0; v < num_shuffled_net_order; v++) {
+            if (checkTimeOut(local_time_limit)) {
+                break;
+            }
             grid = clean_grid;
-            // show permutation
-            // std::cout << "Permutation: ";
-            // for (int i = 0; i < num_nets; i++) {
-                // std::cout << net_order[i] << " ";
-            // }
-            // std::cout << std::endl;
             bool success = true;
+            std::vector<int> net_order = shuffled_net_order[v];
             for (int i = 0; success && i < num_nets; i++) {
                 success = routeOneNet(nets[net_order[i]]);
                 if (!success) {
@@ -89,9 +103,9 @@ void Router::route() {
                 }
             }
             if (!success) {
-                // std::cout << "Failed to route" << std::endl << std::endl;
                 continue;
             }
+            found_count++;
             int total_length = 0;
             for (int i = 0; i < num_nets; i++) {
                 total_length += nets[i]->length;
@@ -102,14 +116,48 @@ void Router::route() {
                     best_nets[i]->copy(nets[i]);
                 }
             }
-            // show total length
-            // std::cout << "Total length: " << total_length << std::endl << std::endl;
-        } while (std::next_permutation(net_order, net_order + num_nets));
-    } while (best_total_length == -1);
+        }
+        if (found_count > 10) {
+            break;
+        }
+    } while (std::next_permutation(dir_order, dir_order + 4));
 
-    for (int i = 0; i < num_nets; i++) {
-        nets[i]->copy(best_nets[i]);
+    return best_total_length != -1;
+}
+
+bool Router::routeMinBend() {
+    min_bend = true;
+    const int local_time_limit = 30;
+
+    for (int v = 0; v < num_shuffled_net_order; v++) {
+        if (checkTimeOut(local_time_limit)) {
+            break;
+        }
+        grid = clean_grid;
+        bool success = true;
+        std::vector<int> net_order = shuffled_net_order[v];
+        for (int i = 0; success && i < num_nets; i++) {
+            success = routeOneNet(nets[net_order[i]]);
+            if (!success) {
+                break;
+            }
+        }
+        if (!success) {
+            continue;
+        }
+        int total_length = 0;
+        for (int i = 0; i < num_nets; i++) {
+            total_length += nets[i]->length;
+        }
+        if (best_total_length == -1 || total_length < best_total_length) {
+            best_total_length = total_length;
+            for (int i = 0; i < num_nets; i++) {
+                best_nets[i]->copy(nets[i]);
+            }
+        }
     }
+
+    return best_total_length != -1;
 }
 
 bool Router::routeOneNet(Net* net) {
@@ -152,7 +200,6 @@ bool Router::routeOneNet(Net* net) {
     int y = net->target_y;
     net->path.push_back(std::make_pair(x, y));
     int prev_dir = -1, cur_dir = -1;
-    int dir_order[4] = {0, 1, 2, 3};
     // save path if previous direction is not the same as current direction
     for (int i = grid[x][y] - 1; i > 0; i--) {
         for (int j = 0; j < 4; j++) {
@@ -160,9 +207,9 @@ bool Router::routeOneNet(Net* net) {
             int new_y = y + dy[dir_order[j]];
             if (isOnGrid(new_x, new_y) && grid[new_x][new_y] == i) {
                 cur_dir = dir_order[j];
-                // if (j != 0) {
-                //     std::swap(dir_order[0], dir_order[j]);
-                // }
+                if (min_bend && j != 0) {
+                    std::swap(dir_order[0], dir_order[j]);
+                }
                 break;
             }
         }
@@ -205,10 +252,14 @@ bool Router::routeOneNet(Net* net) {
     return true;
 }
 
+bool Router::routeCostBased() {
+    return false;
+}
+
 void Router::writeResults(std::string filename) {
     std::ofstream fout(filename);
     for (int i = 0; i < num_nets; i++) {
-        Net* net = nets[i];
+        Net* net = best_nets[i];
         fout << net->net_name << " " << net->length << std::endl;
         fout << "begin" << std::endl;
         for (int j = net->path.size() - 1; j > 0; j--) {
@@ -245,4 +296,12 @@ void Router::showGrid() {
 
 bool Router::isOnGrid(int x, int y) {
     return x >= 0 && x < grid_size_row && y >= 0 && y < grid_size_col;
+}
+
+bool Router::checkTimeOut() {
+    return checkTimeOut(time_limit);
+}
+
+bool Router::checkTimeOut(int local_time_limit) {
+    return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start_time).count() > local_time_limit;
 }
