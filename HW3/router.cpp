@@ -63,6 +63,15 @@ Router::Router(std::string filename) {
     }
     best_total_length = -1;
     clean_grid = grid;
+    int net_order[num_nets];
+    for (int i = 0; i < num_nets; i++) {
+        net_order[i] = i;
+    }
+    do {
+        shuffled_net_order.push_back(std::vector<int>(net_order, net_order + num_nets));
+    } while (std::next_permutation(net_order, net_order + num_nets));
+    std::random_shuffle(shuffled_net_order.begin(), shuffled_net_order.end());
+    num_shuffled_net_order = shuffled_net_order.size();
 }
 
 void Router::route() {
@@ -73,23 +82,20 @@ void Router::route() {
 bool Router::routeBruteForce() {
     min_bend = false;
     const int local_time_limit = 60;
-    int net_order[num_nets];
-    for (int i = 0; i < num_nets; i++) {
-        net_order[i] = i;
-    }
-
     for (int i = 0; i < num_nets; i++) {
         nets[i]->copy(init_nets[i]);
     }
 
+    int found_count = 0;
     std::sort(dir_order, dir_order + 4);
     do {
-        do {
+        for (int v = 0; v < num_shuffled_net_order; v++) {
             if (checkTimeOut(local_time_limit)) {
                 break;
             }
             grid = clean_grid;
             bool success = true;
+            std::vector<int> net_order = shuffled_net_order[v];
             for (int i = 0; success && i < num_nets; i++) {
                 success = routeOneNet(nets[net_order[i]]);
                 if (!success) {
@@ -99,6 +105,7 @@ bool Router::routeBruteForce() {
             if (!success) {
                 continue;
             }
+            found_count++;
             int total_length = 0;
             for (int i = 0; i < num_nets; i++) {
                 total_length += nets[i]->length;
@@ -109,7 +116,10 @@ bool Router::routeBruteForce() {
                     best_nets[i]->copy(nets[i]);
                 }
             }
-        } while (std::next_permutation(net_order, net_order + num_nets));
+        }
+        if (found_count > 10) {
+            break;
+        }
     } while (std::next_permutation(dir_order, dir_order + 4));
 
     return best_total_length != -1;
@@ -118,17 +128,14 @@ bool Router::routeBruteForce() {
 bool Router::routeMinBend() {
     min_bend = true;
     const int local_time_limit = 30;
-    int net_order[num_nets];
-    for (int i = 0; i < num_nets; i++) {
-        net_order[i] = i;
-    }
 
-    do {
+    for (int v = 0; v < num_shuffled_net_order; v++) {
         if (checkTimeOut(local_time_limit)) {
             break;
         }
         grid = clean_grid;
         bool success = true;
+        std::vector<int> net_order = shuffled_net_order[v];
         for (int i = 0; success && i < num_nets; i++) {
             success = routeOneNet(nets[net_order[i]]);
             if (!success) {
@@ -148,7 +155,7 @@ bool Router::routeMinBend() {
                 best_nets[i]->copy(nets[i]);
             }
         }
-    } while (std::next_permutation(net_order, net_order + num_nets));
+    }
 
     return best_total_length != -1;
 }

@@ -35,6 +35,9 @@ class Router {
         std::vector<Net*> best_nets;
         std::vector<std::vector<t_grid>> clean_grid;
 
+        std::vector<std::vector<int>> shuffled_net_order;
+        int num_shuffled_net_order;
+
         // timer
         const int time_limit = 90; // seconds
         std::chrono::time_point<std::chrono::system_clock> start_time;
