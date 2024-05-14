@@ -58,20 +58,33 @@ Router::Router(std::string filename) {
 }
 
 void Router::route() {
+    if (!routeBruteForce()) {
+        routeCostBased();
+    }
+}
+
+bool Router::routeBruteForce() {
+    const int time_limit = 60;
+    auto start = std::chrono::high_resolution_clock::now();
     int net_order[num_nets];
     for (int i = 0; i < num_nets; i++) {
         net_order[i] = i;
     }
 
-    std::vector<Net*> best_nets;
+    std::vector<Net*> best_nets, init_nets;
     for (int i = 0; i < num_nets; i++) {
         best_nets.push_back(new Net());
+        init_nets.push_back(new Net());
+        init_nets[i]->copy(nets[i]);
     }
     int best_total_length = -1;
 
     std::vector<std::vector<t_grid>> clean_grid = grid;
 
     do {
+        if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start).count() > time_limit) {
+            break;
+        }
         grid = clean_grid;
         // show permutation
         // std::cout << "Permutation: ";
@@ -104,8 +117,16 @@ void Router::route() {
         // std::cout << "Total length: " << total_length << std::endl << std::endl;
     } while (std::next_permutation(net_order, net_order + num_nets));
 
-    for (int i = 0; i < num_nets; i++) {
-        nets[i]->copy(best_nets[i]);
+    if (best_total_length == -1) {
+        for (int i = 0; i < num_nets; i++) {
+            nets[i]->copy(init_nets[i]);
+        }
+        return false;
+    } else {
+        for (int i = 0; i < num_nets; i++) {
+            nets[i]->copy(best_nets[i]);
+        }
+        return true;
     }
 }
 
@@ -200,6 +221,10 @@ bool Router::routeOneNet(Net* net) {
     }
     // showGrid();
     return true;
+}
+
+bool Router::routeCostBased() {
+    return false;
 }
 
 void Router::writeResults(std::string filename) {

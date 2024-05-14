@@ -6,6 +6,8 @@ class Router {
     public:
         Router(std::string filename);
         void route();
+        bool routeBruteForce();
+        bool routeCostBased();
         bool routeOneNet(Net* net);
         void writeResults(std::string filename);
         bool isOnGrid(int x, int y);
