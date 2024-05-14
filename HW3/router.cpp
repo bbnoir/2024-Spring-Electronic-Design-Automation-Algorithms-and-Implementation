@@ -75,11 +75,12 @@ Router::Router(std::string filename) {
 }
 
 void Router::route() {
-    routeMinBend();
-    routeBruteForce();
-    if (best_total_length == -1) {
-        routeCostBased();
-    }
+    // routeMinBend();
+    // routeBruteForce();
+    // if (best_total_length == -1) {
+    //     routeCostBased();
+    // }
+    routeCostBased();
 }
 
 bool Router::routeBruteForce() {
@@ -329,6 +330,9 @@ bool Router::routeOneNetCostBased(Net* net) {
     int tail = 1;
     bool found = false;
     while (head < tail) {
+        if (checkTimeOut()) {
+            break;
+        }
         // showGrid();
         int x = queue[head].first;
         int y = queue[head].second;

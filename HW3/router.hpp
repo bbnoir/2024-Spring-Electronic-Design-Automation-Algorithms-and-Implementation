@@ -40,7 +40,7 @@ class Router {
         int num_shuffled_net_order;
 
         // timer
-        const int time_limit = 3; // seconds
+        const int time_limit = 100; // seconds
         std::chrono::time_point<std::chrono::system_clock> start_time;
         bool checkTimeOut();
         bool checkTimeOut(int local_time_limit);
