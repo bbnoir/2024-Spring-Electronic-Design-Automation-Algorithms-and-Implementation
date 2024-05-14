@@ -71,35 +71,41 @@ void Router::route() {
 
     std::vector<std::vector<t_grid>> clean_grid = grid;
 
+    std::srand(42);
     do {
-        grid = clean_grid;
-        // show permutation
-        // std::cout << "Permutation: ";
-        // for (int i = 0; i < num_nets; i++) {
-            // std::cout << net_order[i] << " ";
-        // }
-        // std::cout << std::endl;
-        bool success = true;
-        for (int i = 0; success && i < num_nets; i++) {
-            success = routeOneNet(nets[net_order[i]]);
-        }
-        if (!success) {
-            // std::cout << "Failed to route" << std::endl << std::endl;
-            continue;
-        }
-        int total_length = 0;
-        for (int i = 0; i < num_nets; i++) {
-            total_length += nets[i]->length;
-        }
-        if (best_total_length == -1 || total_length < best_total_length) {
-            best_total_length = total_length;
-            for (int i = 0; i < num_nets; i++) {
-                best_nets[i]->copy(nets[i]);
+        do {
+            grid = clean_grid;
+            // show permutation
+            // std::cout << "Permutation: ";
+            // for (int i = 0; i < num_nets; i++) {
+                // std::cout << net_order[i] << " ";
+            // }
+            // std::cout << std::endl;
+            bool success = true;
+            for (int i = 0; success && i < num_nets; i++) {
+                success = routeOneNet(nets[net_order[i]]);
+                if (!success) {
+                    break;
+                }
             }
-        }
-        // show total length
-        // std::cout << "Total length: " << total_length << std::endl << std::endl;
-    } while (std::next_permutation(net_order, net_order + num_nets));
+            if (!success) {
+                // std::cout << "Failed to route" << std::endl << std::endl;
+                continue;
+            }
+            int total_length = 0;
+            for (int i = 0; i < num_nets; i++) {
+                total_length += nets[i]->length;
+            }
+            if (best_total_length == -1 || total_length < best_total_length) {
+                best_total_length = total_length;
+                for (int i = 0; i < num_nets; i++) {
+                    best_nets[i]->copy(nets[i]);
+                }
+            }
+            // show total length
+            // std::cout << "Total length: " << total_length << std::endl << std::endl;
+        } while (std::next_permutation(net_order, net_order + num_nets));
+    } while (best_total_length == -1);
 
     for (int i = 0; i < num_nets; i++) {
         nets[i]->copy(best_nets[i]);
@@ -123,25 +129,14 @@ bool Router::routeOneNet(Net* net) {
             found = true;
             break;
         }
-        if (x > 0 && grid[x - 1][y] == EMPTY) {
-            queue.push_back(std::make_pair(x - 1, y));
-            grid[x - 1][y] = grid[x][y] + 1;
-            tail++;
-        }
-        if (x < grid_size_row - 1 && grid[x + 1][y] == EMPTY) {
-            queue.push_back(std::make_pair(x + 1, y));
-            grid[x + 1][y] = grid[x][y] + 1;
-            tail++;
-        }
-        if (y > 0 && grid[x][y - 1] == EMPTY) {
-            queue.push_back(std::make_pair(x, y - 1));
-            grid[x][y - 1] = grid[x][y] + 1;
-            tail++;
-        }
-        if (y < grid_size_col - 1 && grid[x][y + 1] == EMPTY) {
-            queue.push_back(std::make_pair(x, y + 1));
-            grid[x][y + 1] = grid[x][y] + 1;
-            tail++;
+        for (int i = 0; i < 4; i++) {
+            int new_x = x + dx[i];
+            int new_y = y + dy[i];
+            if (isOnGrid(new_x, new_y) && grid[new_x][new_y] == EMPTY) {
+                queue.push_back(std::make_pair(new_x, new_y));
+                grid[new_x][new_y] = grid[x][y] + 1;
+                tail++;
+            }
         }
         head++;
     }
@@ -157,30 +152,26 @@ bool Router::routeOneNet(Net* net) {
     int y = net->target_y;
     net->path.push_back(std::make_pair(x, y));
     int prev_dir = -1, cur_dir = -1;
+    int dir_order[4] = {0, 1, 2, 3};
     // save path if previous direction is not the same as current direction
     for (int i = grid[x][y] - 1; i > 0; i--) {
-        if (x > 0 && grid[x - 1][y] == i) {
-            cur_dir = 0;
-        } else if (x < grid_size_row - 1 && grid[x + 1][y] == i) {
-            cur_dir = 1;
-        } else if (y > 0 && grid[x][y - 1] == i) {
-            cur_dir = 2;
-        } else if (y < grid_size_col - 1 && grid[x][y + 1] == i) {
-            cur_dir = 3;
+        for (int j = 0; j < 4; j++) {
+            int new_x = x + dx[dir_order[j]];
+            int new_y = y + dy[dir_order[j]];
+            if (isOnGrid(new_x, new_y) && grid[new_x][new_y] == i) {
+                cur_dir = dir_order[j];
+                // if (j != 0) {
+                //     std::swap(dir_order[0], dir_order[j]);
+                // }
+                break;
+            }
         }
         if (prev_dir != -1 && prev_dir != cur_dir) {
             net->path.push_back(std::make_pair(x, y));
         }
         prev_dir = cur_dir;
-        if (cur_dir == 0) {
-            x--;
-        } else if (cur_dir == 1) {
-            x++;
-        } else if (cur_dir == 2) {
-            y--;
-        } else if (cur_dir == 3) {
-            y++;
-        }
+        x += dx[cur_dir];
+        y += dy[cur_dir];
     }
     if (net->path.back() != std::make_pair(net->source_x, net->source_y)) {
         net->path.push_back(std::make_pair(net->source_x, net->source_y));
@@ -210,7 +201,7 @@ bool Router::routeOneNet(Net* net) {
             net->length += std::abs(sx - tx);
         }
     }
-    showGrid();
+    // showGrid();
     return true;
 }
 
@@ -250,4 +241,8 @@ void Router::showGrid() {
         std::cout << "===";
     }
     std::cout << std::endl;
+}
+
+bool Router::isOnGrid(int x, int y) {
+    return x >= 0 && x < grid_size_row && y >= 0 && y < grid_size_col;
 }
