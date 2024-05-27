@@ -62,22 +62,40 @@ void AtpgObj::BuildFromPath_NR(PATH *pptr)
 	TRANSITION CurT, PreT;
 	assert(pptr->NoGate()==pptr->NoTrans());
 
-	PreG=/* input gate on sensitive path*/
-	PreT=/* input transition on sensitive path*/
+	PreG= pptr->GetGate(0); /* input gate on sensitive path*/
+	PreT= pptr->GetTrans(0); /* input transition on sensitive path*/
 	
 	// Fault Activation at 1st TimeFrame
-	if(PreT==R) AddObj(ToCUTName(PreG, 0), /*value*/);
-	else if(PreT==F) AddObj(ToCUTName(PreG, 0), /*value*/);
+	if(PreT==R) AddObj(ToCUTName(PreG, 0), 0);
+	else if(PreT==F) AddObj(ToCUTName(PreG, 0), 1);
 	else { cerr<<"R/F Error !"<<endl; exit(-1); }
 
 	// Fault Activation at 2nd TimeFrame 
-	if(PreT==R) AddObj(ToCUTName(PreG, 1), /*value*/);
-	else if(PreT==F) AddObj(ToCUTName(PreG, 1), /*value*/);
+	if(PreT==R) AddObj(ToCUTName(PreG, 1), 1);
+	else if(PreT==F) AddObj(ToCUTName(PreG, 1), 0);
 	else { cerr<<"R/F Error !"<<endl; exit(-1); }
 	
    /*Fault Propagation = off-input setting on sensitive path */
-
-	
+	for (int i = 1; i < pptr->NoGate(); ++i) {
+		CurG = pptr->GetGate(i);
+		CurT = pptr->GetTrans(i);
+		switch (CurG->GetFunction())
+		{
+		case G_AND: case G_NAND: case G_OR: case G_NOR:
+			if (PreT != R && PreT != F) { cerr << "R/F Error !" << endl; exit(-1); }
+			else {
+				for (int j = 0; j < CurG->NoFanin(); j++) {
+					if (PreG == CurG->Fanin(j)) continue;
+					AddObj(ToCUTName(CurG->Fanin(j), 1), NCV[CurG->GetFunction()]);
+				}
+			}
+			break;
+		default:
+			break;
+		}
+		PreG = CurG;
+		PreT = CurT;
+	}
 }
 
 void AtpgObj::BuildFromPath_R(PATH *pptr)
@@ -88,7 +106,45 @@ void AtpgObj::BuildFromPath_R(PATH *pptr)
 	assert(pptr->NoGate()==pptr->NoTrans());
     
 	/*Do Fault Activation & Fault Propagation under Robust test setting*/
-
+	PreG= pptr->GetGate(0);
+	PreT= pptr->GetTrans(0);
+	
+	// Fault Activation
+	if(PreT==R) {
+		AddObj(ToCUTName(PreG, 0), 0);
+		AddObj(ToCUTName(PreG, 1), 1);
+	} else if(PreT==F) {
+		AddObj(ToCUTName(PreG, 0), 1);
+		AddObj(ToCUTName(PreG, 1), 0);
+	} else { cerr<<"R/F Error !"<<endl; exit(-1); }
+	
+   /*Fault Propagation = off-input setting on sensitive path */
+	for (int i = 1; i < pptr->NoGate(); ++i) {
+		CurG = pptr->GetGate(i);
+		CurT = pptr->GetTrans(i);
+		switch (CurG->GetFunction())
+		{
+		case G_AND: case G_NAND: case G_OR: case G_NOR:
+			if (PreT != R && PreT != F) { cerr << "R/F Error !" << endl; exit(-1); }
+			else if (PreT == CV[CurG->GetFunction()]) {
+				for (int j = 0; j < CurG->NoFanin(); j++) {
+					if (PreG == CurG->Fanin(j)) continue;
+					AddObj(ToCUTName(CurG->Fanin(j), 1), NCV[CurG->GetFunction()]);
+				}
+			} else {
+				for (int j = 0; j < CurG->NoFanin(); j++) {
+					if (PreG == CurG->Fanin(j)) continue;
+					AddObj(ToCUTName(CurG->Fanin(j), 0), NCV[CurG->GetFunction()]);
+					AddObj(ToCUTName(CurG->Fanin(j), 1), NCV[CurG->GetFunction()]);
+				}
+			}
+			break;
+		default:
+			break;
+		}
+		PreG = CurG;
+		PreT = CurT;
+	}
 }
 
 

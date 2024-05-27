@@ -1,0 +1,5 @@
+set -x
+./KF_ATPG -atpg NR -cir example/c17.bench -path_not example/c17.path_not -output c17_NR.pttn
+./KF_ATPG -atpg R -cir example/c17.bench -path_not example/c17.path_not -output c17_R.pttn
+diff c17_NR.pttn ../case1_ans/c17_NR.pttn
+diff c17_R.pttn ../case1_ans/c17_R.pttn
