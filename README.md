@@ -17,4 +17,5 @@
 - [Lab2 - Partition](./HW2)
 - [Lab3 - Maze Router](./HW3)
 - [Lab4 - SAT-Based Path-Delay-Fault ATPG](./HW4)
+- [Midterm Practice](./practice-sp24.pdf)
 - [Project](./Project)
