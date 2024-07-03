@@ -13,8 +13,8 @@
 ## Contents
 
 - [Lecture Notes](./Notes)
-- [HW1](./HW1)
-- [HW2](./HW2)
-- [HW3](./HW3)
-- [HW4](./HW4)
+- [Lab1 - Binary Decision Diagram](./HW1)
+- [Lab2 - Partition](./HW2)
+- [Lab3 - Maze Router](./HW3)
+- [Lab4 - SAT-Based Path-Delay-Fault ATPG](./HW4)
 - [Project](./Project)
